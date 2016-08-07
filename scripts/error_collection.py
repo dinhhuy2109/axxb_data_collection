@@ -168,9 +168,9 @@ class ErrorCollection(object):
       return False
     if res.success:
         pattern_wrt_cam_start_pose = res.pose
-    # else:
-    #     IPython.embed()
-    #     return False
+    else:
+        rospy.logerr('Init position with no pattern pose')
+        return False
 
     # Move robot follow one axis of the pattern
     Xaxis = Tplate_wrt_robot_start_pose[:3,0]
