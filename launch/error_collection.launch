@@ -6,7 +6,8 @@
   <arg name="samples"       default="50" />
   <arg name="pausetime"     default="1.0" />
   <arg name="debug"         default="True" />
-  
+  <arg name="stepsize"      default="0.05"/> <!-- meters-->
+  <arg name="axis"          default="0"/>
   <!-- Camera driver configuration at start -->
   <node name="driver_dynconfig" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters ensenso_driver" ns="camera">
     <!-- Capture parameters -->
@@ -35,6 +36,10 @@
     <param name="grid_spacing"  type="double" value="$(arg grid_spacing)" />
     <param name="pausetime"     type="double" value="$(arg pausetime)"/>
     <param name="samples"       type="int"    value="$(arg samples)"/>
-    <param name="stepsize"       type="double" value="0.05"/> <!-- meters -->
+    <param name="stepsize"      type="double" value="$(arg stepsize)"/> <!-- meters -->
+    <param name="axis"          type="int"    value="$(arg axis)"/> 
+    <!-- XAXIS = 0
+	 YAXIS = 1
+	 ZAXIS = 2 -->
   </node>
 </launch>

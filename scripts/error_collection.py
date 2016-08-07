@@ -25,10 +25,15 @@ from denso_control.controllers import JointTrajectoryController
 # Services and msgs
 from ensenso.srv import CalibrateHandEye, EstimatePatternPose
 from geometry_msgs.msg import PoseArray
+# Debug and save
 import IPython
+import pickle
 
 class ErrorCollection(object):
   def __init__(self, logger=rospy):
+    XAXIS = 0
+    YAXIS = 1
+    ZAXIS = 2
     # Generic
     np.set_printoptions(precision=7, suppress=True)
     axes = []
@@ -40,6 +45,7 @@ class ErrorCollection(object):
     debug = read_parameter('~debug', False)
     robot_name = read_parameter('~robot_name', False)
     grid_spacing = read_parameter('~grid_spacing', 15.94)
+    axis = read_parameter('~axis',XAXIS)
     stepsize = read_parameter('~stepsize', 0.05)
     samples = int( read_parameter('~samples', 10) )
     pausetime = read_parameter('~pausetime', 1.0)
@@ -173,19 +179,23 @@ class ErrorCollection(object):
         return False
 
     # Move robot follow one axis of the pattern
-    Xaxis = Tplate_wrt_robot_start_pose[:3,0]
-    Yaxis = Tplate_wrt_robot_start_pose[:3,1]
-    Zaxis = Tplate_wrt_robot_start_pose[:3,2]
-    Tplate_goal = Tplate_wrt_robot_start_pose # init
-    # X axis
-    Xaxis_robot_poses = []
-    Xaxis_pattern_poses = []
+    
+    # axis
+    pattern_poses_wrt_robot = []
+    pattern_poses_wrt_cam = []
+    axis = Tplate_wrt_robot_start_pose[:3,axis]
+    # Xaxis = Tplate_wrt_robot_start_pose[:3,0]
+    # Yaxis = Tplate_wrt_robot_start_pose[:3,1]
+    # Zaxis = Tplate_wrt_robot_start_pose[:3,2]
     i = 1
-    rospy.loginfo('Xaxis collection starting..')
-    while not rospy.is_shutdown() and (len(Xaxis_robot_poses) < samples and i <10):
+    rospy.loginfo('axis collection starting..')
+    while not rospy.is_shutdown() and (len(pattern_poses_wrt_robot) < samples and i <10):
         rospy.loginfo('i=%d'%(i))
-        Tplate_goal[:3,3] += Xaxis*stepsize*(len(Xaxis_robot_poses)+i)
+        Tplate_goal = copy.deepcopy(Tplate_wrt_robot_start_pose) # init
+        Tplate_goal[:3,3] += axis*stepsize*(len(pattern_poses_wrt_robot)+i)
         Tgripper_goal = np.dot(Tplate_goal,criros.spalg.transform_inv(Tplate_wrt_gripper))
+        if debug:
+            motion.draw_axes(Tgripper_goal)
         qstart = controller.get_joint_positions()
         qgoal = motion.find_closest_iksolution(Tgripper_goal, qseed=qstart)
         if qgoal is None:
@@ -198,8 +208,6 @@ class ErrorCollection(object):
             i = i+1
             rospy.logwarn('Traj planning failed!')
             continue
-        if debug:
-            motion.draw_axes(Tlook)
         # Move the robot
         ros_traj = motion.openrave_to_ros_traj(traj, rate=125.)
         controller.set_trajectory(ros_traj)
@@ -218,17 +226,26 @@ class ErrorCollection(object):
             continue
         if res.success:
             i = 1
-            Xaxis_pattern_poses.append(criros.conversions.from_pose(res.pose))
+            pattern_poses_wrt_cam.append(criros.conversions.from_pose(res.pose))
             qrobot = controller.get_joint_positions()
             motion.robot.SetActiveDOFValues(qrobot)
             Tgripper = motion.get_transform()
             Tplate =  np.dot(Tgripper,Tplate_wrt_gripper)
-            Xaxis_robot_poses.append(Tgripper)
+            pattern_poses_wrt_robot.append(Tplate)
         else:
             rospy.logwarn('No pattern detected!')
             i = i+1
-
-    # IPython.embed()
+    
+    if len(pattern_poses_wrt_cam) != len(pattern_poses_wrt_robot):
+      rospy.logerr('Data is wrong!')
+    else:
+      rospack = rospkg.RosPack()
+      filepath  = rospack.get_path('axxb_data_collection') 
+      filename = filepath+"/config/pattern_poses_wrt_cam_axis_" + str(read_parameter('~axis',XAXIS))
+      pickle.dump(pattern_poses_wrt_cam, open(filename, "wb" ) )
+      filename = filepath+"/config/pattern_poses_wrt_robot_axis_" + str(read_parameter('~axis',XAXIS))
+      pickle.dump(pattern_poses_wrt_robot, open(filename, "wb" ) )
+    # PROCESSING 
     raw_input()
 
   def cb_left_info(self, msg):
