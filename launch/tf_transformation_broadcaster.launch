@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="rate" default="50" />
+  
+  <node name="tf_transform_broadcaster" pkg="criros" type="tf_transform_broadcaster.py" output="screen" > 
+    <param name="publish_rate"  type="double" value="$(arg rate)" />
+    <rosparam file="$(find ikea_calibration)/config/camera_left_robot_calibration.yaml" command="load" />
+    <rosparam file="$(find ikea_calibration)/config/camera_right_robot_calibration.yaml" command="load" />
+  </node>
+</launch>

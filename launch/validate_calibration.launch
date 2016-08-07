@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- OpenRAVE environment IDs -->
+  <rosparam file="$(find ikea_openrave)/config/openrave_environments.yaml" command="load" />
+  
+  <!-- Validate calibration script -->
+  <node name="validate_calibration" pkg="ikea_calibration" type="validate_calibration.py" output="screen" /> 
+  
+  <!-- Broadcast camera-calibration transformations -->
+  <include file="$(find ikea_calibration)/launch/tf_transformation_broadcaster.launch">
+    <arg name="rate"  value="50"/>
+  </include>
+  
+  <!-- trajectory controller for both robots -->
+  <include file="$(find denso_control)/launch/joint_trajectory_controller.launch">
+    <arg name="namespace" value="left"/>
+  </include>
+  <include file="$(find denso_control)/launch/joint_trajectory_controller.launch">
+    <arg name="namespace" value="right"/>
+  </include>
+</launch>

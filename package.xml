@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>axxb_data_collection</name>
+  <version>0.1.0</version>
+  <description>The axxb_data_collection package</description>
+
+  <maintainer email="huy.nguyendinh09@gmail.com">Huy Nguyen</maintainer>
+  <license>BSD</license>
+  <author email="huy.nguyendinh09@gmail.com">Huy Nguyen</author>
+ 
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>denso_control</build_depend>
+  <build_depend>ensenso</build_depend>
+  <build_depend>image_view</build_depend>
+  
+  <run_depend>denso_control</run_depend>
+  <run_depend>ensenso</run_depend>
+  <run_depend>image_view</run_depend>
+  <run_depend>python-progressbar</run_depend>
+</package>
