@@ -155,14 +155,18 @@ class ErrorCollection(object):
     motion.robot.SetActiveDOFValues(qstart)
     Tgripper_wrt_robot_start_pose = motion.get_transform()
     Tplate_wrt_robot_start_pose = np.dot( Tgripper_wrt_robot_start_pose, Tplate_wrt_gripper)
-    Tplate_wrt_robot_start_pose = np.array([[-0.5609049,  0.5947824,  0.5758642,  0.4782526],
- [-0.4198947, -0.8038679,  0.4212894,  0.3683723],
- [ 0.7134943, -0.0054991,  0.7006395,  0.3831841],
- [ 0.       ,  0.       ,  0.       ,  1.       ]])
-    Tgripper_wrt_robot_start_pose = np.array([[ 0.552164,   0.6087795,  0.5696511,  0.4626489],
- [ 0.4221552, -0.7933376,  0.4386347,  0.3529679],
- [ 0.7189575, -0.0017171, -0.6950519,  0.3694499],
- [ 0.       ,  0.       ,  0.       ,  1.       ]])
+
+    Tplate_wrt_robot_start_pose = np.array([[-0.2196686, -0.0339008,  0.9749854,  0.2667567],
+                                            [ 0.0154392, -0.9993917, -0.0312709, -0.0008035],
+                                            [ 0.9754524,  0.0081838,  0.2200583,  0.4845648],
+                                            [ 0.       ,  0.       ,  0.       ,  1.       ]])
+    Tgripper_wrt_robot_start_pose = np.array([[ 0.9693412, -0.0170245,  0.2451283,  0.2409879],
+                                              [-0.0159712, -0.9998527, -0.006284 , -0.0031107],
+                                              [ 0.2451992,  0.0021763, -0.9694703,  0.4843558],
+                                              [ 0.       , 0.        , 0.        ,  1.       ]])
+    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.1,0,-0.2] # X axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=30 axis:=0
+    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,+0.2,-0.1] # Y axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=50 axis:=1
+    Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,0.,-0.15] # Z axis
     # Start images streaming and collect pattern
     dynclient.update_configuration({'Images':True})
     rospy.sleep(pausetime)   # Wait for the camera to stabilize
@@ -189,8 +193,10 @@ class ErrorCollection(object):
     # Zaxis = Tplate_wrt_robot_start_pose[:3,2]
     i = 1
     rospy.loginfo('axis collection starting..')
-    while not rospy.is_shutdown() and (len(pattern_poses_wrt_robot) < samples and i <10):
-        rospy.loginfo('i=%d'%(i))
+    while not rospy.is_shutdown() and (len(pattern_poses_wrt_robot) < samples and i <5):
+        if i > 1:
+            raw_input()
+       
         Tplate_goal = copy.deepcopy(Tplate_wrt_robot_start_pose) # init
         Tplate_goal[:3,3] += axis*stepsize*(len(pattern_poses_wrt_robot)+i)
         Tgripper_goal = np.dot(Tplate_goal,criros.spalg.transform_inv(Tplate_wrt_gripper))
@@ -232,21 +238,22 @@ class ErrorCollection(object):
             Tgripper = motion.get_transform()
             Tplate =  np.dot(Tgripper,Tplate_wrt_gripper)
             pattern_poses_wrt_robot.append(Tplate)
+            rospy.loginfo('%d/%d pose collected, i=%d'%(len(pattern_poses_wrt_robot),samples,i))
         else:
             rospy.logwarn('No pattern detected!')
             i = i+1
     
-    if len(pattern_poses_wrt_cam) != len(pattern_poses_wrt_robot):
+    if (len(pattern_poses_wrt_cam) != len(pattern_poses_wrt_robot)) or (len(pattern_poses_wrt_robot) == 0) :
       rospy.logerr('Data is wrong!')
     else:
       rospack = rospkg.RosPack()
       filepath  = rospack.get_path('axxb_data_collection') 
-      filename = filepath+"/config/pattern_poses_wrt_cam_axis_" + str(read_parameter('~axis',XAXIS))
+      filename = filepath+"/config/pattern_poses_wrt_cam_axis_" + str(read_parameter('~axis',0))
       pickle.dump(pattern_poses_wrt_cam, open(filename, "wb" ) )
-      filename = filepath+"/config/pattern_poses_wrt_robot_axis_" + str(read_parameter('~axis',XAXIS))
+      filename = filepath+"/config/pattern_poses_wrt_robot_axis_" + str(read_parameter('~axis',0))
       pickle.dump(pattern_poses_wrt_robot, open(filename, "wb" ) )
-    # PROCESSING 
-    raw_input()
+      rospy.loginfo('Result written to file: %s \n %s' %(filename,filename))
+    rospy.spin()
 
   def cb_left_info(self, msg):
     self.left_cam_info = msg
