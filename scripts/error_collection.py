@@ -164,9 +164,14 @@ class ErrorCollection(object):
                                               [-0.0159712, -0.9998527, -0.006284 , -0.0031107],
                                               [ 0.2451992,  0.0021763, -0.9694703,  0.4843558],
                                               [ 0.       , 0.        , 0.        ,  1.       ]])
-    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.1,0,-0.2] # X axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=30 axis:=0
+    Tplate_wrt_robot_start_pose[:3,3] +=[+0.1,0.0,-0.2] # X axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=30 axis:=0
+
     # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,+0.2,-0.1] # Y axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=50 axis:=1
-    Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,0.,-0.15] # Z axis
+    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,-0.05,-0.1] # Y axis(opposite direction, start at -0.05)-data3
+    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,-0.2,-0.1] # Y axis (opposite direction, start at -0.05)-data2
+  
+    # Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,0.,-0.15] # Z axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=50 axis:=2 
+    # Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,-0.1,-0.15] # to the left 10cm data 3
     # Start images streaming and collect pattern
     dynclient.update_configuration({'Images':True})
     rospy.sleep(pausetime)   # Wait for the camera to stabilize

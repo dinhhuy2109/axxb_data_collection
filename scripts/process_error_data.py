@@ -28,8 +28,12 @@ filename = filepath+"/config/pattern_poses_wrt_robot_axis_" + str(AXIS)
 pattern_poses_wrt_robot =  pickle.load(open( filename, "rb" ) )
 
 trans_dist_wrt_robot = [np.linalg.norm(pose[:3,3] - pattern_poses_wrt_robot[0][:3,3]) for pose in pattern_poses_wrt_robot]
-
 trans_dist_wrt_cam = [np.linalg.norm(pose[:3,3] - pattern_poses_wrt_cam[0][:3,3]) for pose in pattern_poses_wrt_cam]
+
+# length = len(trans_dist_wrt_robot)
+# trans_dist_wrt_robot = [np.linalg.norm(pattern_poses_wrt_robot[length-i-1][:3,3] - pattern_poses_wrt_robot[-1][:3,3]) for i in range(length)]
+# trans_dist_wrt_cam = [np.linalg.norm(pattern_poses_wrt_cam[length-i-1][:3,3] - pattern_poses_wrt_cam[-1][:3,3])  for i in range(length)]
+
 trans_errs = [trans_dist_wrt_cam[i]-trans_dist_wrt_robot[i] for i in range(len(trans_dist_wrt_robot))]
 print trans_errs
 print trans_dist_wrt_robot
