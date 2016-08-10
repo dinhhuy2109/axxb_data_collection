@@ -6,6 +6,7 @@ import rospy
 import rospkg
 import numpy as np
 import openravepy as orpy
+import COPE
 # ROS
 import criros
 import tf.transformations as tr
@@ -47,6 +48,9 @@ class ErrorCollection(object):
     grid_spacing = read_parameter('~grid_spacing', 15.94)
     axis = read_parameter('~axis',XAXIS)
     stepsize = read_parameter('~stepsize', 0.05)
+    EST_TRANS_ERROR = read_parameter('~esttranserr',True)
+    rot_element = read_parameter('~rot_element',0)
+    min_value = read_parameter('~min_value',0)
     samples = int( read_parameter('~samples', 10) )
     pausetime = read_parameter('~pausetime', 1.0)
     decode = grid_spacing <= 0
@@ -164,61 +168,63 @@ class ErrorCollection(object):
                                               [-0.0159712, -0.9998527, -0.006284 , -0.0031107],
                                               [ 0.2451992,  0.0021763, -0.9694703,  0.4843558],
                                               [ 0.       , 0.        , 0.        ,  1.       ]])
-    Tplate_wrt_robot_start_pose[:3,3] +=[+0.1,0.0,-0.2] # X axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=30 axis:=0
+    # ESTIMATE ERRORS IN TRANSLATION
+    if EST_TRANS_ERROR:
+      rospy.loginfo('Estimate Translation errors')
+      Tplate_wrt_robot_start_pose[:3,3] +=[+0.1,0.0,-0.2] # X axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=30 axis:=0
 
-    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,+0.2,-0.1] # Y axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=50 axis:=1
-    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,-0.05,-0.1] # Y axis(opposite direction, start at -0.05)-data3
-    # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,-0.2,-0.1] # Y axis (opposite direction, start at -0.05)-data2
-  
-    # Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,0.,-0.15] # Z axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=50 axis:=2 
-    # Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,-0.1,-0.15] # to the left 10cm data 3
-    # Start images streaming and collect pattern
-    dynclient.update_configuration({'Images':True})
-    rospy.sleep(pausetime)   # Wait for the camera to stabilize
-    # Collect the pattern and robot poses
-    try:
-      res = pattern_srv.call(add_to_buffer=True, discard_patterns=True, average=False, decode=decode, grid_spacing=grid_spacing)
-    except rospy.ServiceException as e:
-      logger.logwarn('estimate_pattern_pose service failed: ' + str(e))
-      return False
-    if res.success:
-        pattern_wrt_cam_start_pose = res.pose
-    else:
-        rospy.logerr('Init position with no pattern pose')
+      # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,+0.2,-0.1] # Y axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=50 axis:=1
+      # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,-0.05,-0.1] # Y axis(opposite direction, start at -0.05)-data3
+      # Tplate_wrt_robot_start_pose[:3,3] +=[+0.,-0.2,-0.1] # Y axis (opposite direction, start at -0.05)-data2
+
+      # Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,0.,-0.15] # Z axis roslaunch axxb_data_collection error_collection.launch stepsize:=0.01 samples:=50 axis:=2 
+      # Tplate_wrt_robot_start_pose[:3,3] +=[-0.018,-0.1,-0.15] # to the left 10cm data 3
+      # Start images streaming and collect pattern
+      dynclient.update_configuration({'Images':True})
+      rospy.sleep(pausetime)   # Wait for the camera to stabilize
+      # Collect the pattern and robot poses
+      try:
+        res = pattern_srv.call(add_to_buffer=True, discard_patterns=True, average=False, decode=decode, grid_spacing=grid_spacing)
+      except rospy.ServiceException as e:
+        logger.logwarn('estimate_pattern_pose service failed: ' + str(e))
         return False
+      if res.success:
+          pattern_wrt_cam_start_pose = res.pose
+      else:
+          rospy.logerr('Init position with no pattern pose')
+          return False
 
-    # Move robot follow one axis of the pattern
-    
-    # axis
-    pattern_poses_wrt_robot = []
-    pattern_poses_wrt_cam = []
-    axis = Tplate_wrt_robot_start_pose[:3,axis]
-    # Xaxis = Tplate_wrt_robot_start_pose[:3,0]
-    # Yaxis = Tplate_wrt_robot_start_pose[:3,1]
-    # Zaxis = Tplate_wrt_robot_start_pose[:3,2]
-    i = 1
-    rospy.loginfo('axis collection starting..')
-    while not rospy.is_shutdown() and (len(pattern_poses_wrt_robot) < samples and i <5):
+      # Move robot follow one axis of the pattern
+
+      # axis
+      pattern_poses_wrt_robot = []
+      pattern_poses_wrt_cam = []
+      axis = Tplate_wrt_robot_start_pose[:3,axis]
+      # Xaxis = Tplate_wrt_robot_start_pose[:3,0]
+      # Yaxis = Tplate_wrt_robot_start_pose[:3,1]
+      # Zaxis = Tplate_wrt_robot_start_pose[:3,2]
+      i = 1
+      rospy.loginfo('axis collection starting..')
+      while not rospy.is_shutdown() and (len(pattern_poses_wrt_robot) < samples and i <5):
         if i > 1:
-            raw_input()
-       
+          raw_input()
         Tplate_goal = copy.deepcopy(Tplate_wrt_robot_start_pose) # init
         Tplate_goal[:3,3] += axis*stepsize*(len(pattern_poses_wrt_robot)+i)
         Tgripper_goal = np.dot(Tplate_goal,criros.spalg.transform_inv(Tplate_wrt_gripper))
         if debug:
-            motion.draw_axes(Tgripper_goal)
+          motion.draw_axes(Tgripper_goal)
         qstart = controller.get_joint_positions()
         qgoal = motion.find_closest_iksolution(Tgripper_goal, qseed=qstart)
         if qgoal is None:
-            i = i+1
-            rospy.logwarn('No ik!')
-            continue
+          i = i+1
+          rospy.logwarn('No ik!')
+          continue
         # Plan trajectory
         traj = motion.generate_trajectory(qstart, qgoal)
         if traj is None:
-            i = i+1
-            rospy.logwarn('Traj planning failed!')
-            continue
+          i = i+1
+          rospy.logwarn('Traj planning failed!')
+          continue
         # Move the robot
         ros_traj = motion.openrave_to_ros_traj(traj, rate=125.)
         controller.set_trajectory(ros_traj)
@@ -230,36 +236,108 @@ class ErrorCollection(object):
         rospy.sleep(pausetime)   # Wait for the camera to stabilize
         # Collect the pattern and robot poses
         try:
-            res = pattern_srv.call(add_to_buffer=True, discard_patterns=True, average=False, decode=decode, grid_spacing=grid_spacing)
+          res = pattern_srv.call(add_to_buffer=True, discard_patterns=True, average=False, decode=decode, grid_spacing=grid_spacing)
         except rospy.ServiceException as e:
-            logger.logwarn('estimate_pattern_pose service failed: ' + str(e))
-            i = i+1
-            continue
+          logger.logwarn('estimate_pattern_pose service failed: ' + str(e))
+          i = i+1
+          continue
         if res.success:
-            i = 1
-            pattern_poses_wrt_cam.append(criros.conversions.from_pose(res.pose))
-            qrobot = controller.get_joint_positions()
-            motion.robot.SetActiveDOFValues(qrobot)
-            Tgripper = motion.get_transform()
-            Tplate =  np.dot(Tgripper,Tplate_wrt_gripper)
-            pattern_poses_wrt_robot.append(Tplate)
-            rospy.loginfo('%d/%d pose collected, i=%d'%(len(pattern_poses_wrt_robot),samples,i))
+          i = 1
+          pattern_poses_wrt_cam.append(criros.conversions.from_pose(res.pose))
+          qrobot = controller.get_joint_positions()
+          motion.robot.SetActiveDOFValues(qrobot)
+          Tgripper = motion.get_transform()
+          Tplate =  np.dot(Tgripper,Tplate_wrt_gripper)
+          pattern_poses_wrt_robot.append(Tplate)
+          rospy.loginfo('%d/%d pose collected, i=%d'%(len(pattern_poses_wrt_robot),samples,i))
         else:
-            rospy.logwarn('No pattern detected!')
-            i = i+1
-    
-    if (len(pattern_poses_wrt_cam) != len(pattern_poses_wrt_robot)) or (len(pattern_poses_wrt_robot) == 0) :
-      rospy.logerr('Data is wrong!')
-    else:
-      rospack = rospkg.RosPack()
-      filepath  = rospack.get_path('axxb_data_collection') 
-      filename = filepath+"/config/pattern_poses_wrt_cam_axis_" + str(read_parameter('~axis',0))
-      pickle.dump(pattern_poses_wrt_cam, open(filename, "wb" ) )
-      filename = filepath+"/config/pattern_poses_wrt_robot_axis_" + str(read_parameter('~axis',0))
-      pickle.dump(pattern_poses_wrt_robot, open(filename, "wb" ) )
-      rospy.loginfo('Result written to file: %s \n %s' %(filename,filename))
-    rospy.spin()
+          rospy.logwarn('No pattern detected!')
+          i = i+1
 
+      if (len(pattern_poses_wrt_cam) != len(pattern_poses_wrt_robot)) or (len(pattern_poses_wrt_robot) == 0) :
+        rospy.logerr('Data is wrong!')
+      else:
+        rospack = rospkg.RosPack()
+        filepath  = rospack.get_path('axxb_data_collection') 
+        filename = filepath+"/config/pattern_poses_wrt_cam_axis_" + str(read_parameter('~axis',0))
+        pickle.dump(pattern_poses_wrt_cam, open(filename, "wb" ) )
+        filename = filepath+"/config/pattern_poses_wrt_robot_axis_" + str(read_parameter('~axis',0))
+        pickle.dump(pattern_poses_wrt_robot, open(filename, "wb" ) )
+        rospy.loginfo('Result written to file: %s \n %s' %(filename,filename))
+      rospy.spin()
+    
+    # ESTIMATE ERRORS IN ROTATION
+    else:
+      rospy.loginfo('Estimate Rotation errors')
+      pattern_poses_wrt_robot = []
+      pattern_poses_wrt_cam = []
+      Tplate_wrt_robot_start_pose[:3,3] +=[0.01,0.,-0.15]
+      i = 1
+      rospy.loginfo('rotation errors collection starting..')
+      while not rospy.is_shutdown() and (len(pattern_poses_wrt_robot) < samples and i <5):
+        if i > 1:
+          raw_input()
+        Tplate_goal = copy.deepcopy(Tplate_wrt_robot_start_pose) # init
+        vec = np.zeros(3)
+        vec[rot_element] = stepsize*(len(pattern_poses_wrt_robot)+ i + min_value)
+        print vec
+        Tplate_goal[:3,:3] = np.dot(Tplate_goal[:3,:3], COPE.VecToRot(vec))
+        print Tplate_goal
+        Tgripper_goal = np.dot(Tplate_goal,criros.spalg.transform_inv(Tplate_wrt_gripper))
+        if debug:
+          motion.draw_axes(Tplate_goal,linewidth=2)
+        qstart = controller.get_joint_positions()
+        qgoal = motion.find_closest_iksolution(Tgripper_goal, qseed=qstart)
+        if qgoal is None:
+          i = i+1
+          rospy.logwarn('No ik!')
+          continue
+        # Plan trajectory
+        traj = motion.generate_trajectory(qstart, qgoal)
+        if traj is None:
+          i = i+1
+          rospy.logwarn('Traj planning failed!')
+          continue
+        # Move the robot
+        ros_traj = motion.openrave_to_ros_traj(traj, rate=125.)
+        controller.set_trajectory(ros_traj)
+        controller.start()
+        motion.robot.GetController().SetPath(traj)
+        controller.wait()
+        # Start images streaming and collect pattern
+        dynclient.update_configuration({'Images':True})
+        rospy.sleep(pausetime)   # Wait for the camera to stabilize
+        # Collect the pattern and robot poses
+        try:
+          res = pattern_srv.call(add_to_buffer=True, discard_patterns=True, average=False, decode=decode, grid_spacing=grid_spacing)
+        except rospy.ServiceException as e:
+          logger.logwarn('estimate_pattern_pose service failed: ' + str(e))
+          i = i+1
+          continue
+        if res.success:
+          i = 1
+          pattern_poses_wrt_cam.append(criros.conversions.from_pose(res.pose))
+          qrobot = controller.get_joint_positions()
+          motion.robot.SetActiveDOFValues(qrobot)
+          Tgripper = motion.get_transform()
+          Tplate =  np.dot(Tgripper,Tplate_wrt_gripper)
+          pattern_poses_wrt_robot.append(Tplate)
+          rospy.loginfo('%d/%d pose collected, i=%d'%(len(pattern_poses_wrt_robot),samples,i))
+        else:
+          rospy.logwarn('No pattern detected!')
+          i = i+1
+
+      if (len(pattern_poses_wrt_cam) != len(pattern_poses_wrt_robot)) or (len(pattern_poses_wrt_robot) == 0) :
+        rospy.logerr('Data is wrong!')
+      else:
+        rospack = rospkg.RosPack()
+        filepath  = rospack.get_path('axxb_data_collection') 
+        filename1 = filepath+"/config/pattern_poses_wrt_cam_rot_" + str(read_parameter('~rot_element',0))
+        pickle.dump(pattern_poses_wrt_cam, open(filename1, "wb" ) )
+        filename2 = filepath+"/config/pattern_poses_wrt_robot_rot_" + str(read_parameter('~rot_element',0))
+        pickle.dump(pattern_poses_wrt_robot, open(filename2, "wb" ) )
+        rospy.loginfo('Result written to file: %s \n %s' %(filename1,filename2))
+        rospy.spin()
   def cb_left_info(self, msg):
     self.left_cam_info = msg
 

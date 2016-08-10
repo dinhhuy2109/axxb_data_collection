@@ -8,6 +8,11 @@
   <arg name="debug"         default="True" />
   <arg name="stepsize"      default="0.05"/> <!-- meters-->
   <arg name="axis"          default="0"/>
+  <arg name="esttranserr"   default="True"/>
+  <arg name="rot_element"   default="0"/>
+  <arg name="min_value"     default="0"/> <!-- indicate the left bound
+  of the samples eg. min_value = -2 -> the prog will sample 2 poses on
+  the opposite direction (-=) -->
   <!-- Camera driver configuration at start -->
   <node name="driver_dynconfig" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters ensenso_driver" ns="camera">
     <!-- Capture parameters -->
@@ -37,9 +42,12 @@
     <param name="pausetime"     type="double" value="$(arg pausetime)"/>
     <param name="samples"       type="int"    value="$(arg samples)"/>
     <param name="stepsize"      type="double" value="$(arg stepsize)"/> <!-- meters -->
-    <param name="axis"          type="int"    value="$(arg axis)"/> 
-    <!-- XAXIS = 0
-	 YAXIS = 1
-	 ZAXIS = 2 -->
+    <param name="axis"          type="int"    value="$(arg axis)"/>
+    <!-- XAXIS = 0, YAXIS = 1, ZAXIS = 2 -->
+    <param name="esttranserr"   type="bool"   value="$(arg esttranserr)"/>
+    <param name="rot_element"   type="int"    value="$(arg rot_element)"/>
+    <!-- 0: first element of so3 Rotation, 1: second, 2: third -->
+    <param name="min_value"     type="int"    value="$(arg min_value)"/>
+
   </node>
 </launch>
