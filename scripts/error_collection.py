@@ -271,7 +271,9 @@ class ErrorCollection(object):
       rospy.loginfo('Estimate Rotation errors')
       pattern_poses_wrt_robot = []
       pattern_poses_wrt_cam = []
-      Tplate_wrt_robot_start_pose[:3,3] +=[0.01,0.,-0.15]
+      Tplate_wrt_robot_start_pose[:3,3] +=[0.01,0.,-0.05]
+      # Tplate_wrt_robot_start_pose[:3,3] +=[0.01,0.,-0.15]
+      # roslaunch axxb_data_collection error_collection.launch stepsize:=0.02 samples:=50 min_value:=-25 esttranserr:=False rot_element:=0
       i = 1
       rospy.loginfo('rotation errors collection starting..')
       while not rospy.is_shutdown() and (len(pattern_poses_wrt_robot) < samples and i <5):
@@ -285,7 +287,7 @@ class ErrorCollection(object):
         print Tplate_goal
         Tgripper_goal = np.dot(Tplate_goal,criros.spalg.transform_inv(Tplate_wrt_gripper))
         if debug:
-          motion.draw_axes(Tplate_goal,linewidth=2)
+          motion.draw_axes(Tplate_goal,dist=1.0, linewidth=1)
         qstart = controller.get_joint_positions()
         qgoal = motion.find_closest_iksolution(Tgripper_goal, qseed=qstart)
         if qgoal is None:

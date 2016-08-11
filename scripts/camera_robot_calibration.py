@@ -94,6 +94,8 @@ class RobotCameraCalibration(object):
     # Grasp the calibration plate in OpenRAVE
     motion.taskmanip.CloseFingers()
     motion.robot.Grab(plate)
+    motion.taskmanip.ReleaseFingers()
+    motion.taskmanip.CloseFingers()
     # Add extra protection to avoid hitting the table
     table_aabb = table.GetLink('base').ComputeAABB()
     boxdef = np.zeros(6)
@@ -211,6 +213,13 @@ class RobotCameraCalibration(object):
     if not ( res.pattern_count == len(robot_poses.poses) == len(pattern_poses.poses) ):
       logger.logwarn('Something went wrong. The collected poses dont match the buffer patterns' % duration)
       return
+    # Save files
+    rospack = rospkg.RosPack()
+    filename1 = filepath+"/config/pattern_poses"
+    pickle.dump(pattern_poses, open(filename1, "wb" ) )
+    filename2 = filepath+"/config/robot_poses" + str(read_parameter('~axis',0))
+    pickle.dump(robot_poses, open(filename2, "wb" ) )
+    rospy.loginfo('Result written to file: %s \n %s' %(filename1,filename2))
     # The ensenso SKD will return the transformation of the robot's origin wrt. the camera frame
     try:
       res = calibrate_srv.call( robot_poses=robot_poses, pattern_poses=pattern_poses, 

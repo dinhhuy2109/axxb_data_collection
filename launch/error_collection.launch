@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+  <!-- requires ikea assembly package- master -->
   <!-- launch file parameters -->
   <arg name="namespace"     default="left" />
   <arg name="grid_spacing"  default="15.94" />
