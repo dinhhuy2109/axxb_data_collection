@@ -30,7 +30,7 @@
   </include>
   
   <!-- camera-robot calibration script -->
-  <node name="camera_robot_calibration" pkg="ikea_calibration" type="camera_robot_calibration.py" output="screen" required="True">
+  <node name="camera_robot_calibration" pkg="axxb_data_collection" type="camera_robot_calibration.py" output="screen" required="True">
     <param name="robot_name"    type="string" value="$(arg namespace)" />
     <param name="debug"         type="bool"   value="$(arg debug)"/>
     <param name="grid_spacing"  type="double" value="$(arg grid_spacing)" />

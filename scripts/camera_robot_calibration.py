@@ -215,7 +215,8 @@ class RobotCameraCalibration(object):
       return
     # Save files
     rospack = rospkg.RosPack()
-    filename1 = filepath+"/config/pattern_poses"
+    filepath =  rospack.get_path('axxb_data_collection') 
+    filename1 = filepath +"/config/pattern_poses"
     pickle.dump(pattern_poses, open(filename1, "wb" ) )
     filename2 = filepath+"/config/robot_poses" + str(read_parameter('~axis',0))
     pickle.dump(robot_poses, open(filename2, "wb" ) )
@@ -261,7 +262,7 @@ class RobotCameraCalibration(object):
                   'pixels': res.reprojection_error}}
     # Write the file
     rospack = rospkg.RosPack()
-    yaml_path  = rospack.get_path('ikea_calibration') 
+    yaml_path  = rospack.get_path('axxb_data_collection') 
     yaml_path += '/config/camera_%s_robot_calibration.yaml' % robot_name
     # Write YAML file
     scriptname = os.path.basename(__file__)
