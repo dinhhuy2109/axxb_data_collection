@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>axxb_openrave</name>
+  <version>0.0.0</version>
+  <description>The axxb_openrave package</description>
+
+  <maintainer email="huy.nguyendinh09@gmail.com">Huy Nguyen</maintainer>
+  <license>BSD</license>
+  <author email="huy.nguyendinh09@gmail.com">Huy Nguyen</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>openrave_catkin</depend>
+
+</package>

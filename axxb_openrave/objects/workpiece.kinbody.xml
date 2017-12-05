@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kinbody name="workpiece">
+  <body name="workpiece">
+    <geom type="box">
+			<extents>0.15 0.25 0.005</extents>
+			<rotationaxis>1 0 0 0</rotationaxis>
+      <translation>0 0 -0.005</translation>
+      <diffusecolor>0.1 0.1 0.1</diffusecolor>
+    </geom>
+    <geom type="box">
+			<extents>0.005 0.25 0.25</extents>
+			<rotationaxis>1 0 0 0</rotationaxis>
+      <translation>0.155 0 0.24</translation>
+      <diffusecolor>0.1 0.1 0.1</diffusecolor>
+    </geom>
+  </body>
+</kinbody>

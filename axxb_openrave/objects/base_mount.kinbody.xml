@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kinbody name="base_mount">
+  <body name="base_mount">
+    <geom type="box">
+			<extents>0.1 0.09 0.002</extents>
+			<rotationaxis>1 0 0 0</rotationaxis>
+      <translation>0 0 -0.002</translation>
+      <diffusecolor>0.1 0.1 0.1</diffusecolor>
+    </geom>
+    <geom type="box">
+			<extents>0.075 0.225 0.002</extents>
+			<rotationaxis>1 0 0 0</rotationaxis>
+      <translation>0.175 0 -0.002</translation>
+      <diffusecolor>0.1 0.1 0.1</diffusecolor>
+    </geom>
+  </body>
+</kinbody>

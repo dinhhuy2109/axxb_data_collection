@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="weldbot">
+  <!-- Denso -->
+  <robot file="denso_vs060.dae">
+  </robot>
+  
+  <!-- Base Mount-->
+  <kinbody file="objects/base_mount.kinbody.xml">
+    <body name="base_mount">
+      <offsetfrom>link0</offsetfrom>
+      <translation>0 0 0 </translation>
+    </body>
+    <joint name="joint_base_mount" type="hinge" enable="false">
+      <body>link0</body>
+      <body>base_mount</body>
+      <limits>0 0</limits>
+    </joint>
+  </kinbody>
+
+  <!-- Attach the robot to the base -->
+  <kinbody file="objects/denso_base.kinbody.xml" >
+    <body name="top_plate">
+      <offsetfrom>base_mount</offsetfrom>
+      <translation>0 0 -0.004 </translation>
+    </body>
+    <joint name="joint_denso_base" type="hinge" enable="false">
+      <body>base_mount</body>
+      <body>top_plate</body>
+      <limits>0 0</limits>
+    </joint>
+  </kinbody>
+  
+  <!-- Tool Mount -->
+  <kinbody file="objects/tool_mount.kinbody.xml">
+    <body name="tool_mount">
+      <offsetfrom>link6</offsetfrom>
+			<translation>0 0 0.01</translation>
+    </body>
+    <joint name="joint_tool_mount" type="hinge" enable="false">
+      <body>link6</body>
+      <body>tool_mount</body>
+      <limits>0 0</limits>
+    </joint>
+  </kinbody>
+
+  <!-- Camera -->
+  <kinbody file="objects/ensenso_n35.kinbody.xml">
+		<body name="camera">   
+  	  <offsetfrom>tool_mount</offsetfrom>
+      <rotationaxis>0 0 1 -90</rotationaxis>
+			<translation>-0.0775 0 0.052</translation>
+    </body>
+    <joint name="joint_ensenso" type="hinge" enable="false">
+      <body>tool_mount</body>
+      <body>camera</body>
+      <limits>0 0</limits>
+    </joint>
+  </kinbody>
+
+  <!-- Laser Scanner -->
+  <kinbody file="objects/scan_control.kinbody.xml">
+    <body name="scan_control">
+      <offsetfrom>tool_mount</offsetfrom>
+      <rotationaxis>0 0 1 180 </rotationaxis>
+			<translation>-0.1275 -0.033 0.0915</translation>
+    </body>
+    <joint name="joint_scan_control" type="hinge" enable="false">
+      <body>tool_mount</body>
+      <body>scan_control</body>
+      <limits>0 0</limits>
+    </joint>
+  </kinbody>
+
+  <!-- Tool Tip -->
+  <kinbody file="objects/tooltip.kinbody.xml">
+    <body name="tooltip">
+      <offsetfrom>tool_mount</offsetfrom>
+			<translation>0 0 0.224</translation>
+    </body>
+    <joint name="joint_tooltip" type="hinge" enable="false">
+      <body>tool_mount</body>
+      <body>tooltip</body>
+      <limits>0 0</limits>
+    </joint>
+  </kinbody>
+
+
+  <manipulator name="tooltip">
+    <base>link0</base>
+    <effector>tooltip</effector>
+    <translation>0 0 0.002</translation>
+  </manipulator>
+
+   <manipulator name="camera">
+    <base>link0</base>
+    <effector>camera</effector>
+    <translation>0 0 0</translation>
+  </manipulator>
+  
+  <manipulator name="laser">
+    <base>link0</base>
+    <effector>scan_control</effector>
+    <translation>0 0 0</translation>
+  </manipulator>
+  
+
+  
+
+</robot>

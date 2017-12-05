@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kinbody name="tooltip">
+  <body name="tooltip">
+		<geom type="cylinder">
+      <radius>0.008</radius>
+      <height>0.03</height>
+			<rotationaxis>1 0 0 -90</rotationaxis>
+			<translation>0 0 -0.034</translation>
+		</geom>
+		<geom type="cylinder">
+      <radius>0.0025</radius>
+      <height>0.012</height>
+			<rotationaxis>1 0 0 -90</rotationaxis>
+			<translation>0 0 -0.013</translation>
+		</geom>
+		<geom type="cylinder">
+      <radius>0.0005</radius>
+      <height>0.007</height>
+			<rotationaxis>1 0 0 -90</rotationaxis>
+			<translation>0 0 -0.0035</translation>
+		</geom>
+		<geom type="cylinder">
+      <radius>0.008</radius>
+      <height>0.165</height>
+			<rotationaxis>1 0 0 -90</rotationaxis>
+			<translation>0 0 -0.1315</translation>
+		</geom>
+		<geom type="cylinder">
+      <radius>0.0235</radius>
+      <height>0.01</height>
+			<rotationaxis>1 0 0 -90</rotationaxis>
+			<translation>0 0 -0.219</translation>
+		</geom>
+  </body>
+</kinbody>

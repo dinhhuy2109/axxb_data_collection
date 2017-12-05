@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(axxb_data_collection)
+project(axxb_calibration)
 
 find_package(catkin REQUIRED COMPONENTS
   denso_control

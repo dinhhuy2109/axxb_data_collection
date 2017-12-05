@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kinbody name="floor_beams">
+  <body name="rail_beam">
+    <geom type="trimesh">
+      <render>meshes/rail_beam.stl 0.001</render>
+      <collision>meshes/rail_beam.stl 0.001</collision>
+      <diffusecolor>0.553  0.569  0.612</diffusecolor>
+      <translation>-0.75 -0.03 -0.1</translation>
+    </geom>
+  </body>
+  <body name="support">
+    <translation>0  0.075  -0.20802</translation>
+    <geom type="box">
+      <extents>0.75 0.04 0.05</extents>
+      <diffusecolor>0.357 0.353 0.376</diffusecolor>
+      <translation>0 0 -0.05</translation>
+    </geom>
+  </body>
+  <body name="green_beam_01">
+    <translation>0.0  0.0  -0.00801</translation>
+    <geom type="trimesh">
+      <render>meshes/green_beam.stl 0.001</render>
+      <collision>meshes/green_beam.stl 0.001</collision>
+      <diffusecolor>0.365 0.471 0.271</diffusecolor>
+      <rotationaxis>0 0 1 90</rotationaxis>
+      <translation>0.03 -0.5 -0.2</translation>
+    </geom>
+  </body>
+  <body name="green_beam_02">
+    <translation>0.55  0.0  -0.00801</translation>
+    <geom type="trimesh">
+      <render>meshes/green_beam.stl 0.001</render>
+      <collision>meshes/green_beam.stl 0.001</collision>
+      <diffusecolor>0.365 0.471 0.271</diffusecolor>
+      <rotationaxis>0 0 1 90</rotationaxis>
+      <translation>0.03 -0.5 -0.2</translation>
+    </geom>
+  </body>
+  <body name="green_beam_03">
+    <translation>-0.55  0.0  -0.00801</translation>
+    <geom type="trimesh">
+      <render>meshes/green_beam.stl 0.001</render>
+      <collision>meshes/green_beam.stl 0.001</collision>
+      <diffusecolor>0.365 0.471 0.271</diffusecolor>
+      <rotationaxis>0 0 1 90</rotationaxis>
+      <translation>0.03 -0.5 -0.2</translation>
+    </geom>
+  </body>
+  <!-- Left side plates -->
+  <body name="plate_l01">
+    <translation>-0.55 0 0</translation>
+    <translation>0.002 -0.002 -0.012</translation>
+    <geom type="trimesh">
+      <render>meshes/plate_left_side.stl 0.001</render>
+      <collision>meshes/plate_left_side.stl 0.001</collision>
+      <diffusecolor>0.4 0.6 0.3</diffusecolor>
+      <rotationaxis>1 0 0 90</rotationaxis>
+      <translation>0 0 -0.15</translation>
+    </geom>
+  </body>
+  <body name="plate_l02">
+    <translation>0.002 -0.002 -0.012</translation>
+    <geom type="trimesh">
+      <render>meshes/plate_left_side.stl 0.001</render>
+      <collision>meshes/plate_left_side.stl 0.001</collision>
+      <diffusecolor>0.4 0.6 0.3</diffusecolor>
+
+      <rotationaxis>1 0 0 90</rotationaxis>
+      <translation>0 0 -0.15</translation>
+    </geom>
+  </body>
+  <body name="plate_l03">
+    <translation>0.55 0 0</translation>
+    <translation>0.002 -0.002 -0.012</translation>
+    <geom type="trimesh">
+      <render>meshes/plate_left_side.stl 0.001</render>
+      <collision>meshes/plate_left_side.stl 0.001</collision>
+      <diffusecolor>0.4 0.6 0.3</diffusecolor>
+      <rotationaxis>1 0 0 90</rotationaxis>
+      <translation>0 0 -0.15</translation>
+    </geom>
+  </body>
+  <!-- Right side plates -->
+  <body name="plate_r01">
+    <translation>-0.55 0 0</translation>
+    <translation>-0.002 -0.002 -0.012</translation>
+    <geom type="trimesh">
+      <render>meshes/plate_right_side.stl 0.001</render>
+      <collision>meshes/plate_right_side.stl 0.001</collision>
+      <diffusecolor>0.4 0.6 0.3</diffusecolor>
+      <rotationaxis>1 0 0 90</rotationaxis>
+      <translation>-0.08 0 -0.095</translation>
+    </geom>
+  </body>
+  <body name="plate_r02">
+    <translation>-0.002 -0.002 -0.012</translation>
+    <geom type="trimesh">
+      <render>meshes/plate_right_side.stl 0.001</render>
+      <collision>meshes/plate_right_side.stl 0.001</collision>
+      <diffusecolor>0.4 0.6 0.3</diffusecolor>
+      <rotationaxis>1 0 0 90</rotationaxis>
+      <translation>-0.08 0 -0.095</translation>
+    </geom>
+  </body>
+  <body name="plate_r03">
+    <translation>0.55 0 0</translation>
+    <translation>-0.002 -0.002 -0.012</translation>
+    <geom type="trimesh">
+      <render>meshes/plate_right_side.stl 0.001</render>
+      <collision>meshes/plate_right_side.stl 0.001</collision>
+      <diffusecolor>0.4 0.6 0.3</diffusecolor>
+      <rotationaxis>1 0 0 90</rotationaxis>
+      <translation>-0.08 0 -0.095</translation>
+    </geom>
+  </body>
+</kinbody>

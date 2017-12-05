@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kinbody name="lbv16_032_s90">
+  <body name="drill_body">
+    <geom type="trimesh">
+      <translation>0 0 0.0473</translation>
+      <render>meshes/lbv16_032_s90.wrl 0.001</render>
+      <collision>meshes/lbv16_032_s09.stl 0.001</collision>
+    </geom>
+  </body>
+</kinbody>

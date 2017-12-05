@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>axxb_data_collection</name>
+  <name>axxb_calibration</name>
   <version>0.1.0</version>
-  <description>The axxb_data_collection package</description>
+  <description>The axxb_calibration package</description>
 
   <maintainer email="huy.nguyendinh09@gmail.com">Huy Nguyen</maintainer>
   <license>BSD</license>

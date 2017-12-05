@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kinbody name="tool_mount">
+  <body name="tool_mount">
+    <geom type="box">
+			<extents>0.005 0.0275 0.065</extents>
+			<rotationaxis>0 1 0 90</rotationaxis>
+          <translation> -0.04 0 -0.005 </translation>  
+    </geom>
+		<geom type="box">
+			<extents>0.003 0.05 0.0575 </extents>
+			<translation> -0.108 0 0.04</translation>
+		</geom>
+  </body>
+</kinbody>

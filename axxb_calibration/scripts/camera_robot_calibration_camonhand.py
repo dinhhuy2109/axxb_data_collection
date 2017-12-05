@@ -24,7 +24,7 @@ from denso_openrave.motion import RoboMotion
 from criros.raveutils import iktype5D, iktype6D
 from denso_control.controllers import JointTrajectoryController
 # Services and msgs
-from ensenso.srv import CalibrateHandEye, CollectPattern
+from ensenso.srv import CalibrateHandEye, CollectPattern,EstimatePatternPose
 from geometry_msgs.msg import PoseArray
 
 
@@ -66,14 +66,14 @@ class RobotCameraCalibration(object):
     # Load OpenRAVE environment
     env = orpy.Environment()
     orpy.RaveSetDebugLevel(orpy.DebugLevel.Fatal)
-    worldxml = 'worlds/bimanual_ikea_assembly.env.xml' #TODO: Change the environment
+    worldxml = 'worlds/welding.env.xml' 
     if not env.Load(worldxml):
       raise Exception('World file does not exist: %s' % worldxml)
     robot = env.GetRobot(robot_name)
     if robot is None:
       raise Exception('Could not find robot: {0}'.format(robot_name))
     try:
-      manip = robot.SetActiveManipulator('camera') #TODO: update in the robot xml file
+      manip = robot.SetActiveManipulator('camera') 
     except:
       raise Exception('Could not find manipulator: camera')
     # Remove unnecessary objects from the world
@@ -83,14 +83,15 @@ class RobotCameraCalibration(object):
     logger.loginfo('Loading motion planning and control pipeline')
     motion = RoboMotion(manip, checker='ode')
     motion.change_active_manipulator('camera', iktype=iktype6D)
-    motion.scale_velocity_limits(0.2)
+    motion.scale_velocity_limits(0.1)
     motion.scale_acceleration_limits(0.1)
     motion.set_smoother_iterations(100)
     motion.set_planning_iterations(80)
     motion.enable_collision_checking(True)
     motion.update_link_stats()
     # Add the calibration plate to the world
-    Tplate = # TODO add this
+    Tplate = tr.euler_matrix(0, -np.pi/2.5,0)
+    Tplate[:3,3] = [1.3, 0, 0.35]
     # init guess of the plate pose as Transformation. Relative to the
     # robot origin.
     plate = env.ReadKinBodyXMLFile('objects/calibration_plate.kinbody.xml')
@@ -103,19 +104,16 @@ class RobotCameraCalibration(object):
     # Move the origin to the robot base link
     criros.raveutils.move_origin_to_body(motion.robot)
     # Camera and pattern seeds
-    camera = env.GetKinBody('ensenso_n35')
-    if camera is None:
-      raise Exception('Could not find camera in the world')
-    Tcamera = camera.GetTransform()
+    Tcamera = np.eye(4)
     # Initial guess of the camera pose as Transformation. The pose must be given
     # relative to the robot hand (for a moving camera setup), or relative to the
     # robot origin (for the fixed camera setup).
     camera_seed = criros.conversions.to_pose(Tcamera)
     # Initial guess of the pattern pose as Transformation. This pose must be
     # given relative to the robot hand.
-    pattern_seed = criros.conversions.to_pose(Tplate_wrt_gripper)
+    pattern_seed = criros.conversions.to_pose(Tplate)
     if debug:
-      motion.draw_axes(Tcamera)
+      motion.draw_axes(Tplate)
     # Trajectory controller
     controller = JointTrajectoryController(namespace=robot_name)
     # Camera configuration client and services
@@ -128,7 +126,9 @@ class RobotCameraCalibration(object):
     calibrate_srv = rospy.ServiceProxy('camera/calibrate_handeye',
                                                               CalibrateHandEye)
     calibrate_srv.wait_for_service()
-    pattern_srv = rospy.ServiceProxy('camera/collect_pattern', CollectPattern)
+    collect_pattern_srv = rospy.ServiceProxy('camera/collect_pattern', CollectPattern)
+    collect_pattern_srv.wait_for_service()
+    pattern_srv = rospy.ServiceProxy('camera/estimate_pattern_pose', EstimatePatternPose)
     pattern_srv.wait_for_service()
     # Get left camera info
     self.left_cam_info = None
@@ -138,13 +138,9 @@ class RobotCameraCalibration(object):
       rospy.sleep(0.1)
     camera_info = copy.deepcopy(self.left_cam_info)
     sub.unregister()
-    # OpenRAVE viewer #TODO what is this?
+    # OpenRAVE viewer
     if debug:
       env.SetViewer('QtCoin')
-      T = tr.euler_matrix(-2, 0, np.pi/2.)
-      T[:3,3] = [2.4, 0, 1.57]
-      T[1,3] = Tplate[1,3]
-      env.GetViewer().SetCamera(T)
     # Camera convex hull and triangulation
     points = criros.exploration.camera_fov_corners(camera_info, zdist=maxdist,
                                                                 Tcamera=Tplate)
@@ -176,9 +172,8 @@ class RobotCameraCalibration(object):
       rpy = maxtilt * (2*np.random.random_sample(3) - 1.)
       Tlook = np.dot(Tideal, tr.euler_matrix(*rpy))
       Tlook[:3,3] = criros.exploration.random_point_inside_fov(camera_info,
-                                              maxdist=maxdist, Tcamera=Tcamera)
-      # Check that the plate will be inside the fov hull.
-      # TODO: Use the oriented bounding box here
+                                                               maxdist=maxdist, Tcamera=Tplate)
+      # Check that the camera  will be inside the fov hull.
       corners = criros.raveutils.compute_bounding_box_corners(plate, Tbody=Tlook)
       if not np.alltrue( triangulation.find_simplex(corners)>=0 ):
         continue
@@ -214,40 +209,40 @@ class RobotCameraCalibration(object):
       rospy.sleep(pausetime)   # Wait for the camera to stabilize
       # Collect the pattern and robot poses
       try:
-        # We discard previous patterns only for the 1st observation. This way we
-        # populate the buffer with the observations collected by this script
-        discard = len(robot_poses.poses) == 0
-        res = pattern_srv.call(add_to_buffer=True, clear_buffer=discard,
+        res1 = collect_pattern_srv.call(add_to_buffer=True, clear_buffer=True,
                                       decode=decode, grid_spacing=grid_spacing)
+        res2 = pattern_srv.call(average=False)
       except rospy.ServiceException as e:
         logger.logwarn('collect_pattern service failed: ' + str(e))
         continue
       finally:
         dynclient.update_configuration({'Images':False})
-      if res.success:
-        pattern_poses.poses.append(res.pose)
+      if res1.success and res2.success:
+        pattern_poses.poses.append(res2.pose)
         qrobot = controller.get_joint_positions()
         with env:
           motion.robot.SetActiveDOFValues(qrobot)
-        Tgripper = motion.get_transform(qrobot)
-        robot_poses.poses.append( criros.conversions.to_pose(Tgripper) )
+        Tcamera = motion.get_transform(qrobot)
+        robot_poses.poses.append( criros.conversions.to_pose(Tcamera) )
         pbar.update(len(robot_poses.poses))
     pbar.finish()
     duration = (rospy.Time.now() - starttime).to_sec()
     logger.loginfo('Finished collecting observations in %.2f seconds.' % duration)
-    if not ( res.pattern_count == len(robot_poses.poses)):
-      num_buffer = res.pattern_count
+    if not (len(pattern_poses.poses) == len(robot_poses.poses)):
+      num_buffer = len(pattern_poses.poses)
       num_robot = len(robot_poses.poses)
       logger.logwarn( 'Pattern count mismatch. Buffer: %d, Robot: %d' %
                                                         (num_buffer, num_robot))
       return
     # Save files
+    pattern_tfs = [criros.conversions.from_pose(pattern_pose) for pattern_pose in pattern_poses.poses]
+    robot_tfs   = [criros.conversions.from_pose(robot_pose) for robot_pose in robot_poses.poses] 
     rospack = rospkg.RosPack()
-    filepath =  rospack.get_path('axxb_data_collection') 
-    filename1 = filepath +"/config/pattern_poses"
-    pickle.dump(pattern_poses, open(filename1, "wb" ) )
-    filename2 = filepath+"/config/robot_poses" + str(read_parameter('~axis',0))
-    pickle.dump(robot_poses, open(filename2, "wb" ) )
+    filepath =  rospack.get_path('axxb_calibration') 
+    filename1 = filepath +"/config/pattern_tfs.p"
+    pickle.dump(pattern_tfs, open(filename1, "wb" ) )
+    filename2 = filepath+"/config/robot_tfs.p"
+    pickle.dump(robot_tfs, open(filename2, "wb" ) )
     rospy.loginfo('Result written to file: %s \n %s' %(filename1,filename2))
     
     # # The ensenso SKD will return the transformation of the robot's origin wrt.
@@ -309,7 +304,8 @@ class RobotCameraCalibration(object):
     #   f.write(header)
     #   yaml.safe_dump(yamldata, f)
     # rospy.loginfo('Result written to file: %s' % yaml_path)
-
+    raw_input('DONE')
+    
   def cb_left_info(self, msg):
     self.left_cam_info = msg
 
