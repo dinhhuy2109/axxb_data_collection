@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <name>axxb_perception</name>
+  <version>0.1.0</version>
+  <description>The axxb_perception package</description>
+
+  <maintainer email="huy.nguyendinh09@gmail.com">Huy Nguyen</maintainer>
+  <license>BSD</license>
+  <author email="huy.nguyendinh09@gmail.com">Huy Nguyen</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>ensenso</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>tf_conversions</build_depend>
+
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>ensenso</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>ros_numpy</run_depend>
+  <run_depend>tf_conversions</run_depend>
+</package>

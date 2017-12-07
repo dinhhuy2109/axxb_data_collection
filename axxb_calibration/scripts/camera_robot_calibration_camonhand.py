@@ -83,7 +83,7 @@ class RobotCameraCalibration(object):
     logger.loginfo('Loading motion planning and control pipeline')
     motion = RoboMotion(manip, checker='ode')
     motion.change_active_manipulator('camera', iktype=iktype6D)
-    motion.scale_velocity_limits(0.1)
+    motion.scale_velocity_limits(0.2)
     motion.scale_acceleration_limits(0.1)
     motion.set_smoother_iterations(100)
     motion.set_planning_iterations(80)
