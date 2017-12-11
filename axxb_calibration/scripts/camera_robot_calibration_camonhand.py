@@ -90,8 +90,8 @@ class RobotCameraCalibration(object):
     motion.enable_collision_checking(True)
     motion.update_link_stats()
     # Add the calibration plate to the world
-    Tplate = tr.euler_matrix(0, -np.pi/2.5,0)
-    Tplate[:3,3] = [1.3, 0, 0.35]
+    Tplate = tr.euler_matrix(0, -np.pi/3,0)
+    Tplate[:3,3] = [1.3, 0, 0.2]
     # init guess of the plate pose as Transformation. Relative to the
     # robot origin.
     plate = env.ReadKinBodyXMLFile('objects/calibration_plate.kinbody.xml')
